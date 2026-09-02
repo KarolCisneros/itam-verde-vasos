@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Ticket Ambiental · Cafeterías ITAM</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@600;700&display=swap');
 
   :root{
     --ink:#2B1B12;
@@ -306,7 +306,6 @@
         <div class="cup-card">
           <div class="cup-card-title">TU VASO TIENE ALGO QUE DECIRTE</div>
           <div class="cup-svg-wrap" id="cupWrap"></div>
-          <button class="btn ghost" id="downloadCupBtn">Descargar mi dibujo</button>
         </div>
 
         <div class="community-title">IMPACTO COLECTIVO · COMUNIDAD ITAM ESTA SEMANA</div>
@@ -330,7 +329,7 @@
   // Debe verse como: https://script.google.com/macros/s/XXXXXXXX/exec
   // Mientras esté vacío, el conteo colectivo muestra un aviso en vez de fallar.
   // ======================================================================
-  const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxOx-88VSb3GWFMguKvhR7o9POD4FviaSXo-O9QfWEI5sah2tSA3BkiXwyjKoONDpKk-Q/exec';
+  const SHEET_API_URL = '';
 
   const dateStamp = document.getElementById('dateStamp');
   dateStamp.textContent = new Date().toLocaleDateString('es-MX', {day:'2-digit', month:'2-digit', year:'2-digit'});
@@ -563,15 +562,13 @@
         // corrugated rim lines
         '<path d="M46,20 L60,172" stroke="#8B6C3E" stroke-width="1.5" opacity="0.5"/>' +
         '<path d="M124,20 L110,172" stroke="#8B6C3E" stroke-width="1.5" opacity="0.5"/>' +
-        // cutaway window with plastic film
-        '<rect x="63" y="70" width="44" height="70" rx="6" fill="var(--paper-dim)" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3,3"/>' +
-        '<path d="M67,80 Q78,90 70,100 Q82,108 72,118 Q84,126 74,134" fill="none" stroke="var(--plastic)" stroke-width="4" stroke-linecap="round" opacity="0.85"/>' +
-        '<path d="M96,76 Q86,88 98,98 Q88,108 100,116 Q90,124 100,134" fill="none" stroke="var(--plastic)" stroke-width="4" stroke-linecap="round" opacity="0.7"/>' +
         // face
         '<path d="'+face.browL+'" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>' +
         '<path d="'+face.browR+'" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>' +
         eyesSVG +
         '<path d="'+face.mouth+'" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
+        // nombre escrito a mano sobre el vaso
+        '<text x="85" y="140" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="26" fill="var(--ink)" opacity="0.85" transform="rotate(-5 85 140)">'+escapeHtml(state.name)+'</text>' +
         // rim ellipse on top
         '<ellipse cx="85" cy="14" rx="46" ry="10" fill="none" stroke="#8B6C3E" stroke-width="2"/>' +
       '</g>' +
@@ -579,28 +576,6 @@
 
     document.getElementById('cupWrap').innerHTML = lastCupSVG;
   }
-
-  document.getElementById('downloadCupBtn').addEventListener('click', () => {
-    const svgEl = document.querySelector('#cupWrap svg');
-    if (!svgEl) return;
-    const xml = new XMLSerializer().serializeToString(svgEl);
-    const svg64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));
-    const img = new Image();
-    img.onload = () => {
-      const scale = 3;
-      const vb = svgEl.viewBox.baseVal;
-      const canvas = document.createElement('canvas');
-      canvas.width = vb.width * scale; canvas.height = vb.height * scale;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#E6D8B8'; ctx.fillRect(0,0,canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const a = document.createElement('a');
-      a.download = 'vaso-triste-' + (state.name || 'itamita').replace(/[^a-z0-9áéíóúñ]/gi,'_') + '.png';
-      a.href = canvas.toDataURL('image/png');
-      a.click();
-    };
-    img.src = svg64;
-  });
 
   // ======================================================================
   // CONTADOR COLECTIVO — via Google Sheet (Apps Script, JSONP)
