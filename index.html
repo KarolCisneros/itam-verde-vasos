@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ticket Ambiental · Cafeterías ITAM</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --ink:#2B1B12;
+    --ink-soft:#5B4636;
+    --paper:#F1E6CC;
+    --paper-dim:#E6D8B8;
+    --forest:#3D5C40;
+    --forest-dark:#2A4029;
+    --amber:#C98A3B;
+    --brick:#9C3D2E;
+    --plastic:#7FA6BF;
+    --stage:#1E140D;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    background:var(--stage);
+    background-image:
+      radial-gradient(circle at 15% 8%, rgba(201,138,59,0.10), transparent 45%),
+      radial-gradient(circle at 85% 92%, rgba(61,92,64,0.14), transparent 50%);
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:32px 14px 60px;
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--ink);
+  }
+
+  .stage{width:100%; max-width:420px;}
+
+  .ticket{
+    background:var(--paper);
+    position:relative;
+    padding:6px 0 0;
+    box-shadow:0 18px 40px rgba(0,0,0,0.45), 0 2px 0 rgba(255,255,255,0.04) inset;
+  }
+  .ticket::before, .ticket::after{
+    content:"";
+    display:block;
+    height:12px;
+    background-image:
+      linear-gradient(135deg, var(--stage) 50%, transparent 0),
+      linear-gradient(45deg, var(--stage) 50%, transparent 0);
+    background-size:14px 14px;
+    background-position:0 0, 7px 0;
+    background-repeat:repeat-x;
+  }
+  .ticket::after{transform:rotate(180deg);}
+
+  .ticket-inner{padding:28px 26px 30px;}
+
+  .eyebrow{
+    font-size:11px; letter-spacing:0.04em; color:var(--ink-soft);
+    display:flex; justify-content:space-between; margin-bottom:18px;
+  }
+
+  h1.headline{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:29px;
+    line-height:1.12;
+    margin:0 0 12px;
+    color:var(--ink);
+  }
+  h1.headline em{font-style:italic; color:var(--brick); font-weight:600;}
+
+  p.lede{
+    font-family:'Fraunces', serif;
+    font-size:15px;
+    line-height:1.5;
+    color:var(--ink-soft);
+    margin:0 0 22px;
+  }
+
+  .stat-callout{
+    border-top:1px dashed var(--ink-soft);
+    border-bottom:1px dashed var(--ink-soft);
+    padding:14px 0;
+    margin:20px 0 24px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.6;
+  }
+  .stat-callout b{color:var(--brick); font-size:15px;}
+
+  button.btn{
+    width:100%;
+    border:none;
+    cursor:pointer;
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:0.02em;
+    padding:16px 18px;
+    background:var(--forest);
+    color:var(--paper);
+    transition:transform 0.12s ease, background 0.12s ease;
+  }
+  button.btn:active{transform:scale(0.98);}
+  button.btn:hover{background:var(--forest-dark);}
+  button.btn.ghost{
+    background:transparent;
+    color:var(--ink);
+    border:1px solid var(--ink);
+    margin-top:10px;
+  }
+  button.btn.ghost:hover{background:var(--paper-dim);}
+  button.btn:disabled{opacity:0.5; cursor:not-allowed;}
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  .q-label{
+    font-family:'Fraunces', serif;
+    font-size:19px;
+    line-height:1.35;
+    margin:0 0 20px;
+    color:var(--ink);
+  }
+  .q-count{font-size:11px; color:var(--ink-soft); margin-bottom:8px;}
+  .q-hint{font-size:11.5px; color:var(--ink-soft); margin:-12px 0 18px; line-height:1.5;}
+
+  .options{display:flex; flex-direction:column; gap:9px; margin-bottom:6px;}
+  .opt{
+    display:flex; align-items:center; justify-content:space-between;
+    border:1px solid var(--ink-soft);
+    padding:13px 14px;
+    cursor:pointer;
+    font-size:13.5px;
+    background:var(--paper);
+    transition:background 0.12s ease, border-color 0.12s ease;
+  }
+  .opt:hover{background:var(--paper-dim);}
+  .opt .mark{opacity:0; font-size:14px; color:var(--forest);}
+  .opt.selected{border-color:var(--forest); background:var(--paper-dim);}
+  .opt.selected .mark{opacity:1;}
+
+  input.text-input{
+    width:100%;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+    padding:13px 14px;
+    border:1px solid var(--ink-soft);
+    background:var(--paper);
+    color:var(--ink);
+    margin-bottom:14px;
+  }
+  input.text-input:focus{outline:none; border-color:var(--forest);}
+
+  /* result / receipt */
+  .receipt-line{
+    display:flex; justify-content:space-between; gap:10px;
+    font-size:12.5px;
+    padding:6px 0;
+    border-bottom:1px dotted rgba(43,27,18,0.25);
+    opacity:0;
+    transform:translateY(4px);
+    animation:printIn 0.35s ease forwards;
+  }
+  .receipt-line .label{color:var(--ink-soft);}
+  .receipt-line .val{font-weight:600; text-align:right; white-space:nowrap;}
+  @keyframes printIn{to{opacity:1; transform:translateY(0);}}
+
+  .receipt-section-title{
+    font-size:11px; letter-spacing:0.05em; color:var(--forest-dark);
+    margin:20px 0 6px; font-weight:600;
+    opacity:0; animation:printIn 0.35s ease forwards;
+  }
+
+  .total-line{
+    display:flex; justify-content:space-between; align-items:baseline;
+    border-top:1px solid var(--ink); margin-top:16px; padding-top:12px;
+    opacity:0; animation:printIn 0.35s ease forwards;
+  }
+  .total-line .tlabel{font-family:'Fraunces', serif; font-size:15px;}
+  .total-line .tval{font-family:'Fraunces', serif; font-size:15px; font-weight:700; color:var(--brick);}
+
+  .note-box{
+    margin-top:20px; padding:13px 14px;
+    background:var(--paper-dim);
+    border-left:3px solid var(--forest);
+    font-size:12px; line-height:1.55; color:var(--ink-soft);
+    opacity:0; animation:printIn 0.4s ease forwards;
+  }
+
+  .barcode{
+    height:34px; margin:18px 0 4px;
+    background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 4px, var(--ink) 4px 5px, transparent 5px 9px, var(--ink) 9px 12px, transparent 12px 15px);
+    opacity:0.85;
+  }
+
+  /* cup card */
+  .cup-card{
+    margin-top:26px;
+    border:1px dashed var(--ink-soft);
+    padding:16px 14px 14px;
+    text-align:center;
+  }
+  .cup-card-title{font-size:11px; letter-spacing:0.05em; color:var(--forest-dark); margin-bottom:10px; font-weight:600;}
+  .cup-svg-wrap{background:var(--paper-dim); padding:6px;}
+  .cup-svg-wrap svg{width:100%; height:auto; display:block;}
+
+  /* community impact */
+  .community-title{font-size:11px; letter-spacing:0.05em; color:var(--forest-dark); margin:26px 0 4px; font-weight:600;}
+  .impact-counter{
+    text-align:center; margin:8px 0 16px;
+  }
+  .impact-counter .num{
+    font-family:'Fraunces', serif; font-weight:700; font-size:40px; color:var(--brick); line-height:1;
+  }
+  .impact-counter .cap{font-size:11px; color:var(--ink-soft); margin-top:4px;}
+
+  .gauge-block{margin:16px 0;}
+  .gauge-label{display:flex; justify-content:space-between; font-size:11.5px; color:var(--ink-soft); margin-bottom:5px;}
+  .gauge-track{
+    position:relative; height:16px; background:var(--paper-dim); border:1px solid var(--ink-soft); overflow:hidden;
+  }
+  .gauge-fill{
+    position:absolute; top:0; left:0; height:100%; width:0%;
+    background:repeating-linear-gradient(45deg, var(--plastic) 0 6px, #6B93AC 6px 12px);
+    transition:width 1.1s cubic-bezier(.2,.8,.3,1);
+  }
+  .gauge-fill.forest{background:repeating-linear-gradient(45deg, var(--forest) 0 6px, var(--forest-dark) 6px 12px);}
+
+  .forest-row{font-size:20px; letter-spacing:3px; margin:4px 0 2px; line-height:1;}
+  .forest-more{font-size:11px; color:var(--ink-soft);}
+
+  .community-note{font-size:12px; color:var(--ink-soft); line-height:1.6; margin-top:14px;}
+  .community-note b{color:var(--forest-dark);}
+
+  .loading{text-align:center; font-size:12px; color:var(--ink-soft); padding:30px 0;}
+
+  .mural-cta{
+    text-align:center; font-family:'Fraunces', serif; font-style:italic;
+    font-size:12.5px; color:var(--ink-soft); margin-top:22px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .receipt-line, .total-line, .note-box, .receipt-section-title{animation:none; opacity:1;}
+    .gauge-fill{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="ticket">
+    <div class="ticket-inner">
+
+      <div class="eyebrow"><span id="dateStamp"></span><span>CAFETERÍAS · ITAM</span></div>
+
+      <!-- INTRO -->
+      <section class="screen active" id="screen-intro">
+        <h1 class="headline">¿Cuánto cuesta<br>tu <em>café para llevar</em>?</h1>
+        <p class="lede">Cada vaso desechable que usas en el ITAM tiene un precio que no aparece en la cuenta. Descúbrelo en 30 segundos.</p>
+        <div class="stat-callout">
+          Cada vaso de un solo uso necesita <b>0.58 L</b> de agua para fabricarse y genera <b>~61 g</b> de CO₂ — y por su recubrimiento plástico, casi ninguno se recicla.
+        </div>
+        <button class="btn" id="startBtn">Calcular mi impacto →</button>
+      </section>
+
+      <!-- NAME -->
+      <section class="screen" id="screen-name">
+        <div class="q-count">Antes de empezar</div>
+        <p class="q-label">¿Cómo te llamas o qué apodo usas?</p>
+        <p class="q-hint">Es para personalizar tu vaso. Tu nombre solo aparece en tu ticket y tu dibujo — no se publica en ningún lado sin que tú lo compartas.</p>
+        <input type="text" class="text-input" id="nameInput" placeholder="Tu nombre o apodo" maxlength="24">
+        <button class="btn" id="nameNextBtn">Continuar →</button>
+      </section>
+
+      <!-- Q1 -->
+      <section class="screen" id="screen-q1">
+        <div class="q-count">Pregunta 1 de 2</div>
+        <p class="q-label">¿Cuántos cafés en vaso desechable tomas por semana en el ITAM?</p>
+        <div class="options" id="opts-q1"></div>
+      </section>
+
+      <!-- Q2 -->
+      <section class="screen" id="screen-q2">
+        <div class="q-count">Pregunta 2 de 2</div>
+        <p class="q-label">¿Con qué frecuencia usas tu propio termo o vaso reutilizable?</p>
+        <div class="options" id="opts-q2"></div>
+      </section>
+
+      <!-- LOADING -->
+      <section class="screen" id="screen-loading">
+        <div class="loading">imprimiendo tu ticket…</div>
+      </section>
+
+      <!-- RESULT -->
+      <section class="screen" id="screen-result">
+        <p class="q-label" id="resultTitle" style="margin-bottom:2px;">TICKET AMBIENTAL</p>
+        <div class="barcode"></div>
+        <div id="receiptBody"></div>
+
+        <div class="cup-card">
+          <div class="cup-card-title">TU VASO TIENE ALGO QUE DECIRTE</div>
+          <div class="cup-svg-wrap" id="cupWrap"></div>
+          <button class="btn ghost" id="downloadCupBtn">Descargar mi dibujo</button>
+        </div>
+
+        <div class="community-title">IMPACTO COLECTIVO · COMUNIDAD ITAM ESTA SEMANA</div>
+        <div id="communityBox">
+          <div class="loading">conectando con el conteo colectivo…</div>
+        </div>
+
+        <button class="btn ghost" id="restartBtn">Volver a calcular</button>
+        <p class="mural-cta">Guarda tu vaso — pronto será parte del mural de la campaña.</p>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  // ======================================================================
+  // CONFIGURA AQUÍ tu URL de Google Apps Script (ver instrucciones aparte).
+  // Debe verse como: https://script.google.com/macros/s/XXXXXXXX/exec
+  // Mientras esté vacío, el conteo colectivo muestra un aviso en vez de fallar.
+  // ======================================================================
+  const SHEET_API_URL = '';
+
+  const dateStamp = document.getElementById('dateStamp');
+  dateStamp.textContent = new Date().toLocaleDateString('es-MX', {day:'2-digit', month:'2-digit', year:'2-digit'});
+
+  const screens = {
+    intro: document.getElementById('screen-intro'),
+    name: document.getElementById('screen-name'),
+    q1: document.getElementById('screen-q1'),
+    q2: document.getElementById('screen-q2'),
+    loading: document.getElementById('screen-loading'),
+    result: document.getElementById('screen-result'),
+  };
+  function show(name){
+    Object.values(screens).forEach(s => s.classList.remove('active'));
+    screens[name].classList.add('active');
+  }
+
+  function escapeHtml(str){
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  const state = { name:'', weeklyCups: 0, reuse: null };
+
+  // ---------- name ----------
+  document.getElementById('startBtn').addEventListener('click', () => show('name'));
+  document.getElementById('nameNextBtn').addEventListener('click', () => {
+    const raw = document.getElementById('nameInput').value.trim();
+    state.name = raw ? raw.slice(0,24) : 'tú';
+    renderOptions(document.getElementById('opts-q1'), Q1_OPTIONS, (val) => {
+      state.weeklyCups = val;
+      show('q2');
+    });
+    show('q1');
+  });
+
+  // ---------- questions ----------
+  const Q1_OPTIONS = [
+    {label:'0 — no compro café ahí', value:0},
+    {label:'1 a 3 vasos', value:2},
+    {label:'4 a 7 vasos', value:5.5},
+    {label:'8 a 14 vasos', value:11},
+    {label:'15 o más', value:16},
+  ];
+  const Q2_OPTIONS = [
+    {label:'Nunca, siempre uso desechable', value:'nunca'},
+    {label:'A veces', value:'a_veces'},
+    {label:'Casi siempre traigo el mío', value:'casi_siempre'},
+  ];
+
+  function renderOptions(container, items, onPick){
+    container.innerHTML = '';
+    items.forEach((item) => {
+      const el = document.createElement('div');
+      el.className = 'opt';
+      el.innerHTML = '<span>' + item.label + '</span><span class="mark">✓</span>';
+      el.addEventListener('click', () => {
+        [...container.children].forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        setTimeout(() => onPick(item.value), 220);
+      });
+      container.appendChild(el);
+    });
+  }
+
+  renderOptions(document.getElementById('opts-q2'), Q2_OPTIONS, (val) => {
+    state.reuse = val;
+    show('loading');
+    setTimeout(buildReceipt, 550);
+  });
+
+  // ======================================================================
+  // MODELO DE IMPACTO
+  // Base: 0.58 L de agua y ~60.9 g de CO2 por vaso desechable (datos de
+  // ciclo de vida); ~1 árbol por cada 2,460 vasos (16 mil millones de
+  // vasos/año equivalen a 6.5 millones de árboles).
+  // ======================================================================
+  const WATER_PER_CUP_L = 0.58;
+  const CO2_PER_CUP_G = 60.9;
+  const CUPS_PER_TREE = 2460;
+  const SEMESTER_WEEKS = 16;
+  const OLYMPIC_POOL_L = 2500000;
+
+  function fmt(n, decimals){
+    return n.toLocaleString('es-MX', {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
+  }
+
+  async function buildReceipt(){
+    const weekly = state.weeklyCups;
+    const semesterCups = Math.round(weekly * SEMESTER_WEEKS);
+    const yearCups = Math.round(weekly * 52);
+
+    const waterL = yearCups * WATER_PER_CUP_L;
+    const co2Kg = (yearCups * CO2_PER_CUP_G) / 1000;
+    const trees = yearCups / CUPS_PER_TREE;
+    const garrafones = waterL / 20;
+    const kmAuto = (yearCups * CO2_PER_CUP_G) / 120;
+
+    document.getElementById('resultTitle').textContent = 'TICKET AMBIENTAL · ' + state.name.toUpperCase();
+
+    const body = document.getElementById('receiptBody');
+    body.innerHTML = '';
+    let delay = 0;
+    function addLine(label, val, isSectionTitle){
+      const el = document.createElement('div');
+      el.className = isSectionTitle ? 'receipt-section-title' : 'receipt-line';
+      el.style.animationDelay = delay + 'ms';
+      delay += 90;
+      if (isSectionTitle){ el.textContent = label; }
+      else { el.innerHTML = '<span class="label">' + label + '</span><span class="val">' + val + '</span>'; }
+      body.appendChild(el);
+    }
+
+    addLine('CONSUMO REPORTADO', null, true);
+    addLine('vasos / semana', fmt(weekly,1));
+    addLine('vasos / semestre ITAM', fmt(semesterCups,0));
+    addLine('vasos / año', fmt(yearCups,0));
+
+    addLine('COSTO AMBIENTAL ANUAL', null, true);
+    addLine('agua usada en fabricación', fmt(waterL,0) + ' L');
+    addLine('≈ garrafones de 20 L', fmt(garrafones,0));
+    addLine('CO₂ emitido', fmt(co2Kg,1) + ' kg');
+    addLine('≈ km recorridos en auto', fmt(kmAuto,0) + ' km');
+    addLine('árboles equivalentes', fmt(trees,2) + ' 🌳');
+
+    const total = document.createElement('div');
+    total.className = 'total-line';
+    total.style.animationDelay = delay + 'ms'; delay += 90;
+    total.innerHTML = '<span class="tlabel">TOTAL A PAGAR</span><span class="tval">EL PLANETA</span>';
+    body.appendChild(total);
+
+    const note = document.createElement('div');
+    note.className = 'note-box';
+    note.style.animationDelay = delay + 'ms';
+    if (state.reuse === 'casi_siempre'){
+      note.innerHTML = 'Ya traes tu propio termo casi siempre — tu ticket sería mucho más largo sin ese hábito. Contagia a alguien más esta semana.';
+    } else if (state.reuse === 'a_veces'){
+      note.innerHTML = 'A veces usas tu propio vaso — súbele: cada vez que lo haces le restas ' + fmt(WATER_PER_CUP_L,2) + ' L de agua y ' + fmt(CO2_PER_CUP_G,0) + ' g de CO₂ a este ticket.';
+    } else {
+      note.innerHTML = 'Aún no usas termo propio. Empezar con una vez por semana ya le quita ' + fmt(WATER_PER_CUP_L*52,0) + ' L de agua a tu ticket anual.';
+    }
+    body.appendChild(note);
+
+    renderCup();
+    show('result');
+    await updateCommunity();
+  }
+
+  // ======================================================================
+  // VASO TRISTE / ENOJADO — dibujo SVG personalizado
+  // ======================================================================
+  const PHRASES = [
+    {mood:'triste',       text:(n)=>'¿Me sorbes por 5 minutos y luego me desechas? ¿Eso soy para ti, ' + n + '?'},
+    {mood:'culpable',     text:(n)=>'Hazte responsable de esto, ' + n + '.'},
+    {mood:'triste',       text:(n)=>'Tus nietos podrían seguir bebiendo de mí.'},
+    {mood:'enojado',      text:(n)=>'Morirás, y yo seguiré aquí.'},
+    {mood:'enojado',      text:(n)=>'¿Crees que por tener cartón soy ecológico? Estoy lleno de plástico.'},
+    {mood:'triste',       text:(n)=>'Te mentí: no soy natural. Estoy lleno de plástico.'},
+    {mood:'enojado',      text:(n)=>'450 años. Así de largo va a ser lo nuestro, ' + n + '.'},
+    {mood:'enojado',      text:(n)=>'Me usaste 5 minutos. Yo te voy a sobrevivir 450 años.'},
+    {mood:'triste',       text:(n)=>'Fui árbol. Ahora soy basura, ' + n + '.'},
+    {mood:'culpable',     text:(n)=>'Cada trago tuyo me costó 0.58 litros de agua limpia.'},
+    {mood:'enojado',      text:(n)=>'No soy un popote de buenas intenciones. Soy plástico disfrazado.'},
+    {mood:'triste',       text:(n)=>n + ', ¿ya se te olvidó que existo? Yo tampoco me voy a olvidar de ti.'},
+  ];
+
+  const FACES = {
+    triste: {
+      browL:'M40,64 Q52,57 65,66', browR:'M105,66 Q118,57 130,64',
+      eyeType:'circle', eyeL:{cx:52,cy:80,r:6}, eyeR:{cx:118,cy:80,r:6},
+      mouth:'M56,108 Q85,96 114,108'
+    },
+    enojado: {
+      browL:'M40,60 L65,72', browR:'M105,72 L130,60',
+      eyeType:'circle', eyeL:{cx:52,cy:82,r:5}, eyeR:{cx:118,cy:82,r:5},
+      mouth:'M54,106 L64,113 L74,105 L85,113 L96,105 L106,113 L116,106'
+    },
+    culpable: {
+      browL:'M40,66 Q52,58 65,62', browR:'M105,70 Q118,66 130,76',
+      eyeType:'path', eyeL:'M44,80 Q52,74 60,80', eyeR:'M108,82 Q118,76 128,82',
+      mouth:'M56,106 Q85,116 114,98'
+    }
+  };
+
+  function faceForMood(mood){
+    if (mood === 'enojado') return FACES.enojado;
+    if (mood === 'culpable') return FACES.culpable;
+    return FACES.triste;
+  }
+
+  function wrapText(text, maxChars){
+    const words = text.split(' ');
+    const lines = []; let cur = '';
+    words.forEach(w => {
+      if ((cur + ' ' + w).trim().length > maxChars){ lines.push(cur.trim()); cur = w; }
+      else { cur = (cur + ' ' + w).trim(); }
+    });
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
+  let lastCupSVG = '';
+
+  function renderCup(){
+    const phraseObj = PHRASES[Math.floor(Math.random() * PHRASES.length)];
+    const phrase = phraseObj.text(escapeHtml(state.name));
+    const face = faceForMood(phraseObj.mood);
+    const lines = wrapText(phrase, 26).slice(0,4);
+    const bubbleH = 50 + lines.length * 20;
+
+    const tspans = lines.map((l,i) => '<tspan x="85" dy="' + (i===0? 0 : 18) + '">' + l + '</tspan>').join('');
+
+    const eyesSVG = face.eyeType === 'circle'
+      ? '<circle cx="'+face.eyeL.cx+'" cy="'+face.eyeL.cy+'" r="'+face.eyeL.r+'" fill="var(--ink)"/><circle cx="'+face.eyeR.cx+'" cy="'+face.eyeR.cy+'" r="'+face.eyeR.r+'" fill="var(--ink)"/>'
+      : '<path d="'+face.eyeL+'" stroke="var(--ink)" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="'+face.eyeR+'" stroke="var(--ink)" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
+
+    lastCupSVG =
+    '<svg viewBox="0 0 170 '+(bubbleH+250)+'" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">' +
+      '<rect x="0" y="0" width="170" height="'+(bubbleH+250)+'" fill="var(--paper-dim)"/>' +
+      // speech bubble
+      '<rect x="6" y="10" width="158" height="'+bubbleH+'" rx="4" fill="var(--paper)" stroke="var(--ink)" stroke-width="2"/>' +
+      '<path d="M75,'+(10+bubbleH)+' L85,'+(28+bubbleH)+' L100,'+(10+bubbleH)+' Z" fill="var(--paper)" stroke="var(--ink)" stroke-width="2"/>' +
+      '<rect x="8" y="'+(12+bubbleH-2)+'" width="70" height="4" fill="var(--paper)"/>' +
+      '<text x="85" y="'+34+'" text-anchor="middle" font-size="11.5" fill="var(--ink)">'+tspans+'</text>' +
+      // cup body
+      '<g transform="translate(0,'+(bubbleH+40)+')">' +
+        '<ellipse cx="85" cy="14" rx="46" ry="10" fill="#8B6C3E"/>' +
+        '<path d="M42,14 L58,178 Q85,186 112,178 L128,14 Q85,24 42,14 Z" fill="#C9A66B" stroke="#8B6C3E" stroke-width="2"/>' +
+        // corrugated rim lines
+        '<path d="M46,20 L60,172" stroke="#8B6C3E" stroke-width="1.5" opacity="0.5"/>' +
+        '<path d="M124,20 L110,172" stroke="#8B6C3E" stroke-width="1.5" opacity="0.5"/>' +
+        // cutaway window with plastic film
+        '<rect x="63" y="70" width="44" height="70" rx="6" fill="var(--paper-dim)" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3,3"/>' +
+        '<path d="M67,80 Q78,90 70,100 Q82,108 72,118 Q84,126 74,134" fill="none" stroke="var(--plastic)" stroke-width="4" stroke-linecap="round" opacity="0.85"/>' +
+        '<path d="M96,76 Q86,88 98,98 Q88,108 100,116 Q90,124 100,134" fill="none" stroke="var(--plastic)" stroke-width="4" stroke-linecap="round" opacity="0.7"/>' +
+        // face
+        '<path d="'+face.browL+'" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>' +
+        '<path d="'+face.browR+'" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>' +
+        eyesSVG +
+        '<path d="'+face.mouth+'" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
+        // rim ellipse on top
+        '<ellipse cx="85" cy="14" rx="46" ry="10" fill="none" stroke="#8B6C3E" stroke-width="2"/>' +
+      '</g>' +
+    '</svg>';
+
+    document.getElementById('cupWrap').innerHTML = lastCupSVG;
+  }
+
+  document.getElementById('downloadCupBtn').addEventListener('click', () => {
+    const svgEl = document.querySelector('#cupWrap svg');
+    if (!svgEl) return;
+    const xml = new XMLSerializer().serializeToString(svgEl);
+    const svg64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));
+    const img = new Image();
+    img.onload = () => {
+      const scale = 3;
+      const vb = svgEl.viewBox.baseVal;
+      const canvas = document.createElement('canvas');
+      canvas.width = vb.width * scale; canvas.height = vb.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#E6D8B8'; ctx.fillRect(0,0,canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const a = document.createElement('a');
+      a.download = 'vaso-triste-' + (state.name || 'itamita').replace(/[^a-z0-9áéíóúñ]/gi,'_') + '.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    };
+    img.src = svg64;
+  });
+
+  // ======================================================================
+  // CONTADOR COLECTIVO — via Google Sheet (Apps Script, JSONP)
+  // ======================================================================
+  function jsonp(url, params){
+    return new Promise((resolve, reject) => {
+      const cbName = 'cb_' + Math.random().toString(36).slice(2);
+      const query = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
+      const script = document.createElement('script');
+      const timer = setTimeout(() => { cleanup(); reject(new Error('timeout')); }, 8000);
+      function cleanup(){ delete window[cbName]; script.remove(); clearTimeout(timer); }
+      window[cbName] = (data) => { cleanup(); resolve(data); };
+      script.onerror = () => { cleanup(); reject(new Error('network')); };
+      script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + query + '&callback=' + cbName;
+      document.body.appendChild(script);
+    });
+  }
+
+  function animateCount(el, to, decimals){
+    const from = 0, duration = 900, start = performance.now();
+    function step(now){
+      const p = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(from + (to - from) * eased, decimals);
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function renderCommunity(totalCups, participants){
+    const box = document.getElementById('communityBox');
+    const totalWaterWeek = totalCups * WATER_PER_CUP_L;
+    const poolPct = Math.min(100, (totalWaterWeek / OLYMPIC_POOL_L) * 100);
+    const treesLost = Math.floor(totalCups / CUPS_PER_TREE);
+    const treeProgressPct = Math.min(100, ((totalCups % CUPS_PER_TREE) / CUPS_PER_TREE) * 100);
+    const forestIcons = Math.min(treesLost, 14);
+
+    box.innerHTML =
+      '<div class="impact-counter"><div class="num" id="cupCounter">0</div>' +
+      '<div class="cap">vasos reportados esta semana por ' + participants + ' estudiantes del ITAM</div></div>' +
+      '<div class="gauge-block">' +
+        '<div class="gauge-label"><span>Agua usada esta semana</span><span>' + fmt(poolPct,2) + '% de una alberca olímpica</span></div>' +
+        '<div class="gauge-track"><div class="gauge-fill" id="poolFill"></div></div>' +
+      '</div>' +
+      '<div class="gauge-block">' +
+        '<div class="gauge-label"><span>Rumbo al próximo árbol talado</span><span>' + fmt(treeProgressPct,0) + '%</span></div>' +
+        '<div class="gauge-track"><div class="gauge-fill forest" id="treeFill"></div></div>' +
+      '</div>' +
+      (treesLost > 0
+        ? '<div class="forest-row">' + '🌲'.repeat(forestIcons) + (treesLost > forestIcons ? '<span class="forest-more"> +' + (treesLost - forestIcons) + ' más</span>' : '') + '</div>'
+          + '<div class="community-note"><b>' + treesLost + ' árbol' + (treesLost===1?'':'es') + '</b> ya se fueron por los vasos de esta semana.</div>'
+        : '<div class="community-note">Todavía no completamos un árbol talado esta semana — ayuda a que nunca lleguemos a uno.</div>'
+      );
+
+    animateCount(document.getElementById('cupCounter'), totalCups, 0);
+    requestAnimationFrame(() => {
+      document.getElementById('poolFill').style.width = poolPct + '%';
+      document.getElementById('treeFill').style.width = treeProgressPct + '%';
+    });
+  }
+
+  async function updateCommunity(){
+    const box = document.getElementById('communityBox');
+    if (!SHEET_API_URL){
+      box.innerHTML = '<div class="community-note">El conteo colectivo se activará cuando se conecte el Google Sheet de la campaña.</div>';
+      return;
+    }
+    try{
+      const data = await jsonp(SHEET_API_URL, {
+        action:'submit',
+        nombre: state.name,
+        vasos: state.weeklyCups,
+        reuso: state.reuse
+      });
+      renderCommunity(Number(data.totalCups)||0, Number(data.participants)||0);
+    } catch(err){
+      box.innerHTML = '<div class="community-note">No se pudo conectar con el conteo colectivo. Tu ticket individual sigue siendo válido.</div>';
+    }
+  }
+
+  document.getElementById('restartBtn').addEventListener('click', () => {
+    state.weeklyCups = 0; state.reuse = null;
+    document.getElementById('nameInput').value = '';
+    [...document.querySelectorAll('.opt')].forEach(o => o.classList.remove('selected'));
+    show('intro');
+  });
+})();
+</script>
+
+</body>
+</html>
