@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Ticket Ambiental · Cafeterías ITAM</title>
+<title>Ticket Ambiental · Cafeterías</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@600;700&display=swap');
 
@@ -262,9 +262,9 @@
       <!-- INTRO -->
       <section class="screen active" id="screen-intro">
         <h1 class="headline">¿Cuánto cuesta<br>tu <em>café para llevar</em>?</h1>
-        <p class="lede">Cada vaso desechable que usas en el ITAM tiene un precio que no aparece en la cuenta. Descúbrelo en 30 segundos.</p>
+        <p class="lede">Cada vaso desechable que usas tiene un precio que no aparece en la cuenta. Descúbrelo en 30 segundos.</p>
         <div class="stat-callout">
-          Cada vaso de un solo uso necesita <b>0.58 L</b> de agua para fabricarse y genera <b>~61 g</b> de CO₂ — y por su recubrimiento plástico, casi ninguno se recicla.
+          Cada vaso de un solo uso necesita <b>0.58 L</b> de agua para fabricarse y genera <b>~61 g</b> de CO₂ — y por su recubrimiento plástico, casi ninguno se recicla (es difícil y poco eficiente).
         </div>
         <button class="btn" id="startBtn">Calcular mi impacto →</button>
       </section>
@@ -314,7 +314,6 @@
         </div>
 
         <button class="btn ghost" id="restartBtn">Volver a calcular</button>
-        <p class="mural-cta">Guarda tu vaso — pronto será parte del mural de la campaña.</p>
       </section>
 
     </div>
@@ -454,7 +453,7 @@
     addLine('≈ garrafones de 20 L', fmt(garrafones,0));
     addLine('CO₂ emitido', fmt(co2Kg,1) + ' kg');
     addLine('≈ km recorridos en auto', fmt(kmAuto,0) + ' km');
-    addLine('árboles equivalentes', fmt(trees,2) + ' 🌳');
+    addLine('árboles equivalentes', fmt(trees,2));
 
     const total = document.createElement('div');
     total.className = 'total-line';
