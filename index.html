@@ -537,10 +537,10 @@
     const phraseObj = PHRASES[Math.floor(Math.random() * PHRASES.length)];
     const phrase = phraseObj.text(escapeHtml(state.name));
     const face = faceForMood(phraseObj.mood);
-    const lines = wrapText(phrase, 26).slice(0,4);
-    const bubbleH = 50 + lines.length * 20;
+    const lines = wrapText(phrase, 18).slice(0,7);
+    const bubbleH = 50 + lines.length * 19;
 
-    const tspans = lines.map((l,i) => '<tspan x="85" dy="' + (i===0? 0 : 18) + '">' + l + '</tspan>').join('');
+    const tspans = lines.map((l,i) => '<tspan x="85" dy="17"' + (i===0? 0 : 18) + '">' + l + '</tspan>').join('');
 
     const eyesSVG = face.eyeType === 'circle'
       ? '<circle cx="'+face.eyeL.cx+'" cy="'+face.eyeL.cy+'" r="'+face.eyeL.r+'" fill="var(--ink)"/><circle cx="'+face.eyeR.cx+'" cy="'+face.eyeR.cy+'" r="'+face.eyeR.r+'" fill="var(--ink)"/>'
